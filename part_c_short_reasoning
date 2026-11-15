@@ -1,0 +1,27 @@
+1. Why does d2 = d not create a copy? copy() vs deepcopy()?*
+d2 = d only copies the reference, so both names point to the same dictionary object and a change through one shows in the other. d.copy() makes a new outer dictionary but the inner objects (nested dictionaries or lists) are still shared. copy.deepcopy(d) copies everything recursively, so nothing is shared. For the student database I would use deepcopy, because each student has a nested marks dictionary. With a shallow copy, editing marks in the copy would also change the original.
+
+*2. Why must dictionary keys be hashable? Which of [1, 2], (1, 2), {1, 2}, "12" can be a key?*
+A dictionary finds a key using its hash value. The hash must never change while the key is in the dictionary, so only immutable (hashable) objects are allowed. (1, 2) (tuple) and "12" (string) can be keys. [1, 2] (list) and {1, 2} (set) cannot, because they are mutable.
+
+*3. When to use d[key], d.get(key), d.get(key, default)?*
+- d[key]: when the key must exist and a missing key is a real error. Example: in Q1, after checking that the roll number exists, students[roll]["marks"].
+- d.get(key): when a missing key is a normal case and I handle None. Example: in Q2, employees.get(emp_id) and then print "Employee not found".
+- d.get(key, default): when a missing key should use a default value. Example: in Q4, counts[w] = counts.get(w, 0) + 1 while counting words.
+
+*4. .update() vs assigning d[key] = value in a loop? When is .update() cleaner?*
+Both set keys and overwrite existing ones. .update() merges many key-value pairs from another dictionary in one call, while the loop sets them one by one. .update() is cleaner when merging a whole dictionary or changing several fields together, for example contact.update({"email": new_email, "city": new_city}).
+
+*5. In Q2, why create a new dictionary with a comprehension instead of modifying salaries in place? When is in-place better?*
+A comprehension builds a new dictionary, so the original data stays unchanged. This lets me compare before and after, preview the raise, and avoid accidental side effects in other parts of the program. In-place modification is better when the change is meant to be real and permanent, such as the "Update salary" option, or when the data is very large and making a copy wastes memory.
+
+*6. Why does deleting keys while looping over a dictionary fail? Two safe ways?*
+Deleting a key changes the size of the dictionary during iteration, so Python raises RuntimeError: dictionary changed size during iteration. Two safe ways:
+1. Loop over a copy of the keys: for k in list(d): if ...: del d[k].
+2. Build a new dictionary with a comprehension that keeps only the wanted items: d = {k: v for k, v in d.items() if v != 2}.
+
+*7. In Q3, how did you invert book -> members into member -> books, and why a list?*
+I loop over every book and, for every member in its issued_to list, add the ISBN to that member's entry: inverted.setdefault(member, []).append(isbn). A list is needed because one member can hold more than one book (up to 2 in this system). If the value were a single book, the second book would overwrite the first.
+
+*8. Time complexity of dictionary lookup vs searching a list? Why is the number -> name dictionary worthwhile in Q5?*
+A dictionary lookup is O(1) on average because of hashing. Searching a list of records is O(n), since every record (and every phone list) may need to be checked. In Q5, finding who owns a number without a reverse dictionary means scanning all contacts each time. Building number -> name once costs O(n), and after that every reverse lookup and every "number already belongs to someone" check is O(1). It is worth it when many lookups are done.
